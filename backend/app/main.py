@@ -5,7 +5,7 @@ import os
 
 from app.config import settings
 from app.database import init_db
-from app.routes import invoices, health, inventory
+from app.routes import invoices, health, inventory, sales
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -32,6 +32,7 @@ app.mount("/uploads", StaticFiles(directory=settings.UPLOAD_DIR), name="uploads"
 app.include_router(health.router, tags=["Health"])
 app.include_router(invoices.router, prefix="/api/invoices", tags=["Invoices"])
 app.include_router(inventory.router, prefix="/api/inventory", tags=["Inventory"])
+app.include_router(sales.router, prefix="/api/sales", tags=["Sales"])
 
 
 @app.on_event("startup")

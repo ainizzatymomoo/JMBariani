@@ -5,6 +5,7 @@ import Dashboard from './pages/Dashboard'
 import Invoices from './pages/Invoices'
 import InvoiceUpload from './pages/InvoiceUpload'
 import Inventory from './pages/Inventory'
+import Sales from './pages/Sales'
 
 function Sidebar() {
   const linkClass = ({ isActive }) =>
@@ -66,13 +67,7 @@ function App() {
           <Route path="/invoices" element={<Invoices />} />
           <Route path="/invoices/upload" element={<InvoiceUpload />} />
           <Route path="/inventory" element={<Inventory />} />
-          <Route path="/sales" element={
-            <div className="text-center py-20 text-gray-500">
-              <TrendingUp size={64} className="mx-auto mb-4 opacity-50" />
-              <h2 className="text-2xl font-bold">Sales Tracker</h2>
-              <p>Coming in Phase 3</p>
-            </div>
-          } />
+          <Route path="/sales" element={<Sales />} />
         </Routes>
       </Layout>
     </BrowserRouter>
