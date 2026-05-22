@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Package, AlertTriangle, Plus, ArrowUpCircle, ArrowDownCircle, Trash2, RefreshCw } from 'lucide-react'
 import axios from 'axios'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+const API_URL = import.meta.env.VITE_API_URL || `${window.location.protocol}//${window.location.hostname}:8000`
 
 const categoryColors = {
   basah: 'bg-blue-100 text-blue-700',

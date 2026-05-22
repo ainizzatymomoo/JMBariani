@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     # OCR Settings
     TESSERACT_CMD: Optional[str] = None  # Use system default
     OCR_LANG: str = "eng+msa"  # English + Malay
+    GOOGLE_VISION_API_KEY: Optional[str] = None  # Google Cloud Vision (free tier: 1000/month)
 
     # JWT Auth
     SECRET_KEY: str = "jmbariani-dev-secret-change-in-production"

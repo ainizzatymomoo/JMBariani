@@ -57,8 +57,8 @@ async def upload_invoice(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"OCR failed: {str(e)}")
 
-    # Determine if manual input is needed (confidence < 60%)
-    LOW_CONFIDENCE_THRESHOLD = 60.0
+    # Determine if manual input is needed (confidence < 50%)
+    LOW_CONFIDENCE_THRESHOLD = 50.0
     needs_manual_input = confidence < LOW_CONFIDENCE_THRESHOLD
 
     # Parse extracted text (even for low confidence, try to get what we can)

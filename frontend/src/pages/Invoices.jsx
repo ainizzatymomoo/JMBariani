@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { FileText, Eye, Trash2, CheckCircle, Clock, AlertCircle, Package } from 'lucide-react'
 import axios from 'axios'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+const API_URL = import.meta.env.VITE_API_URL || `${window.location.protocol}//${window.location.hostname}:8000`
 
 const statusColors = {
   pending: 'bg-gray-100 text-gray-700',
