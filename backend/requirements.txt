@@ -13,6 +13,11 @@ Pillow==10.1.0
 PyMuPDF==1.23.7
 pdfplumber==0.10.3
 pdf2image==1.16.3
+numpy>=1.24.0
+
+# Google Vision API (optional - set GOOGLE_VISION_API_KEY to enable)
+google-cloud-vision>=3.5.0
+requests>=2.31.0
 
 # Utilities
 python-dateutil==2.8.2
