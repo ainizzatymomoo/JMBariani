@@ -1,0 +1,75 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: jmbariani-db
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - jmbariani-net
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: jmbariani-backend
+    restart: always
+    volumes:
+      - ./uploads:/app/uploads
+      - ./test_invoice:/app/test_invoice
+      - ./test_report:/app/test_report
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      UPLOAD_DIR: /app/uploads
+      SECRET_KEY: ${SECRET_KEY}
+      DEBUG: ${DEBUG:-false}
+      OCR_LANG: ${OCR_LANG:-eng}
+      TESSDATA_PREFIX: ${TESSDATA_PREFIX:-/usr/share/tesseract-ocr/5/tessdata}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - jmbariani-net
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    container_name: jmbariani-frontend
+    restart: always
+    networks:
+      - jmbariani-net
+
+  nginx:
+    image: nginx:alpine
+    container_name: jmbariani-nginx
+    restart: always
+    ports:
+      - "3000:80"
+      - "8000:8000"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./uploads:/app/uploads:ro
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - jmbariani-net
+
+volumes:
+  postgres_data:
+
+networks:
+  jmbariani-net:
+    driver: bridge
