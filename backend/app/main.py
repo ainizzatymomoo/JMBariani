@@ -14,10 +14,20 @@ app = FastAPI(
     version="0.1.0"
 )
 
-# CORS - allow frontend
+# CORS - allow frontend (configurable via ALLOWED_ORIGINS env var)
+# Set ALLOWED_ORIGINS=http://YOUR_VPS_IP:3000 in .env for production
+cors_origins = os.environ.get("ALLOWED_ORIGINS", "").split(",")
+cors_origins = [o.strip() for o in cors_origins if o.strip()]
+if not cors_origins:
+    cors_origins = [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://151.243.173.228:3000",
+    ]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

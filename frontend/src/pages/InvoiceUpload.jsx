@@ -3,7 +3,7 @@ import { useDropzone } from 'react-dropzone'
 import { Upload, CheckCircle, AlertCircle, Loader, PenTool, Plus, Trash2, Save } from 'lucide-react'
 import axios from 'axios'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+const API_URL = import.meta.env.VITE_API_URL || `${window.location.protocol}//${window.location.hostname}:8000`
 
 export default function InvoiceUpload() {
   const [uploading, setUploading] = useState(false)

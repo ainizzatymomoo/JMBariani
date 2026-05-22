@@ -9,7 +9,7 @@ import Inventory from './pages/Inventory'
 import Sales from './pages/Sales'
 import Login from './pages/Login'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+const API_URL = import.meta.env.VITE_API_URL || `${window.location.protocol}//${window.location.hostname}:8000`
 
 // --- Axios interceptor: auto-attach token & handle 401 ---
 function setupAxiosAuth(token, onUnauthorized) {
