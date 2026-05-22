@@ -5,7 +5,7 @@ import os
 
 from app.config import settings
 from app.database import init_db
-from app.routes import invoices, health, inventory, sales
+from app.routes import invoices, health, inventory, sales, dashboard
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -33,6 +33,7 @@ app.include_router(health.router, tags=["Health"])
 app.include_router(invoices.router, prefix="/api/invoices", tags=["Invoices"])
 app.include_router(inventory.router, prefix="/api/inventory", tags=["Inventory"])
 app.include_router(sales.router, prefix="/api/sales", tags=["Sales"])
+app.include_router(dashboard.router, prefix="/api/dashboard", tags=["Dashboard"])
 
 
 @app.on_event("startup")
