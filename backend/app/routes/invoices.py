@@ -57,7 +57,11 @@ async def upload_invoice(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"OCR failed: {str(e)}")
 
-    # Parse extracted text
+    # Determine if manual input is needed (confidence < 60%)
+    LOW_CONFIDENCE_THRESHOLD = 60.0
+    needs_manual_input = confidence < LOW_CONFIDENCE_THRESHOLD
+
+    # Parse extracted text (even for low confidence, try to get what we can)
     parsed_data = invoice_parser.parse(raw_text)
 
     # Find or create supplier
@@ -72,6 +76,9 @@ async def upload_invoice(
             db.flush()
         supplier_id = supplier.id
 
+    # Set status based on confidence
+    status = "manual_required" if needs_manual_input else "parsed"
+
     # Create invoice record
     invoice = Invoice(
         supplier_id=supplier_id,
@@ -80,7 +87,7 @@ async def upload_invoice(
         subtotal=parsed_data.get("subtotal", 0),
         tax=parsed_data.get("tax", 0),
         total=parsed_data.get("total", 0),
-        status="parsed",
+        status=status,
         ocr_raw_text=raw_text,
         ocr_confidence=confidence,
         original_filename=filename,
@@ -91,28 +98,37 @@ async def upload_invoice(
     db.add(invoice)
     db.flush()
 
-    # Create invoice items
-    for item_data in parsed_data.get("items", []):
-        item = InvoiceItem(
-            invoice_id=invoice.id,
-            name=item_data["name"],
-            quantity=item_data.get("quantity", 1),
-            unit=item_data.get("unit"),
-            unit_price=item_data.get("unit_price", 0),
-            total_price=item_data.get("total_price", 0),
-            category=item_data.get("category", "lain")
-        )
-        db.add(item)
+    # Create invoice items (only if confidence is acceptable)
+    if not needs_manual_input:
+        for item_data in parsed_data.get("items", []):
+            item = InvoiceItem(
+                invoice_id=invoice.id,
+                name=item_data["name"],
+                quantity=item_data.get("quantity", 1),
+                unit=item_data.get("unit"),
+                unit_price=item_data.get("unit_price", 0),
+                total_price=item_data.get("total_price", 0),
+                category=item_data.get("category", "lain")
+            )
+            db.add(item)
 
     db.commit()
     db.refresh(invoice)
 
+    if needs_manual_input:
+        message = (
+            f"OCR confidence too low ({confidence:.1f}%). "
+            f"Please enter invoice details manually."
+        )
+    else:
+        message = f"Invoice processed. Confidence: {confidence:.1f}%. Please review."
+
     return OCRResultResponse(
         invoice_id=invoice.id,
-        status="parsed",
+        status=status,
         ocr_confidence=confidence,
         parsed_data=parsed_data,
-        message=f"Invoice processed. Confidence: {confidence:.1f}%. Please review."
+        message=message
     )
 
 

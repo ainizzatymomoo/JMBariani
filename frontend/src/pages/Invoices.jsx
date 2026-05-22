@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { FileText, Eye, Trash2, CheckCircle, Clock, AlertCircle } from 'lucide-react'
+import { FileText, Eye, Trash2, CheckCircle, Clock, AlertCircle, Package } from 'lucide-react'
 import axios from 'axios'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
@@ -7,6 +7,7 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 const statusColors = {
   pending: 'bg-gray-100 text-gray-700',
   parsed: 'bg-yellow-100 text-yellow-700',
+  manual_required: 'bg-orange-100 text-orange-700',
   verified: 'bg-green-100 text-green-700',
   rejected: 'bg-red-100 text-red-700'
 }
@@ -57,6 +58,16 @@ export default function Invoices() {
       }
     } catch (err) {
       console.error('Failed to verify:', err)
+    }
+  }
+
+  async function processToInventory(id) {
+    try {
+      const res = await axios.post(`${API_URL}/api/inventory/process-invoice/${id}`)
+      alert(res.data.message)
+      fetchInvoices()
+    } catch (err) {
+      alert(err.response?.data?.detail || 'Failed to process to inventory')
     }
   }
 
@@ -159,18 +170,26 @@ export default function Invoices() {
                     ) : <p>No items parsed</p>}
                   </div>
                 </div>
-                <div className="flex gap-2 mt-6">
+                <div className="flex flex-col gap-2 mt-6">
                   {selectedInvoice.status !== 'verified' && (
                     <button
                       onClick={() => verifyInvoice(selectedInvoice.id)}
-                      className="flex-1 bg-green-500 text-white py-2 rounded-lg text-sm hover:bg-green-600"
+                      className="w-full bg-green-500 text-white py-2 rounded-lg text-sm hover:bg-green-600"
                     >
                       <CheckCircle size={14} className="inline mr-1" /> Verify
                     </button>
                   )}
+                  {selectedInvoice.status === 'verified' && selectedInvoice.items?.length > 0 && (
+                    <button
+                      onClick={() => processToInventory(selectedInvoice.id)}
+                      className="w-full bg-primary-600 text-white py-2 rounded-lg text-sm hover:bg-primary-700"
+                    >
+                      <Package size={14} className="inline mr-1" /> Process to Inventory
+                    </button>
+                  )}
                   <button
                     onClick={() => deleteInvoice(selectedInvoice.id)}
-                    className="flex-1 bg-red-50 text-red-600 py-2 rounded-lg text-sm hover:bg-red-100"
+                    className="w-full bg-red-50 text-red-600 py-2 rounded-lg text-sm hover:bg-red-100"
                   >
                     <Trash2 size={14} className="inline mr-1" /> Delete
                   </button>

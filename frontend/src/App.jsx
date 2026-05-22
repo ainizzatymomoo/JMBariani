@@ -4,6 +4,7 @@ import { FileText, Package, TrendingUp, LayoutDashboard } from 'lucide-react'
 import Dashboard from './pages/Dashboard'
 import Invoices from './pages/Invoices'
 import InvoiceUpload from './pages/InvoiceUpload'
+import Inventory from './pages/Inventory'
 
 function Sidebar() {
   const linkClass = ({ isActive }) =>
@@ -64,13 +65,7 @@ function App() {
           <Route path="/" element={<Dashboard />} />
           <Route path="/invoices" element={<Invoices />} />
           <Route path="/invoices/upload" element={<InvoiceUpload />} />
-          <Route path="/inventory" element={
-            <div className="text-center py-20 text-gray-500">
-              <Package size={64} className="mx-auto mb-4 opacity-50" />
-              <h2 className="text-2xl font-bold">Inventory Module</h2>
-              <p>Coming in Phase 2</p>
-            </div>
-          } />
+          <Route path="/inventory" element={<Inventory />} />
           <Route path="/sales" element={
             <div className="text-center py-20 text-gray-500">
               <TrendingUp size={64} className="mx-auto mb-4 opacity-50" />
