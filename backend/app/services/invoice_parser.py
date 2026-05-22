@@ -28,9 +28,9 @@ class InvoiceParser:
 
     # Invoice number patterns
     INVOICE_PATTERNS = [
-        r'(?:invoice|inv)[\s.#:]*(?:no[\s.#:]*)?([A-Z0-9][\w-]{2,20})',
-        r'(?:no|no\.|bil|resit|receipt)[\s#:]+([A-Z0-9][\w-]{2,20})',
-        r'#\s*([A-Z0-9][\w-]{2,20})',
+        r'(?:invoice|inv)[\s.#:]*(?:no[\s.#:]*)?([A-Z0-9][\w/-]{2,20})',
+        r'(?:no|no\.|bil|resit|receipt)[\s#:]+([A-Z0-9][\d][\w/-]{1,20})',
+        r'#\s*([A-Z0-9][\d][\w/-]{1,20})',
     ]
 
     # Item line patterns - tries to match: qty unit item_name price
@@ -156,12 +156,37 @@ class InvoiceParser:
             if any(skip in line.lower() for skip in [
                 'total', 'jumlah', 'subtotal', 'tax', 'cukai',
                 'terima kasih', 'thank you', 'invoice', 'receipt',
-                'phone', 'tel', 'fax', 'email', 'address'
+                'phone', 'tel', 'fax', 'email', 'address',
+                'change', 'tender', 'master', 'visa', 'cash',
+                'sst', 'rounding', 'saving', 'member', 'points',
+                'refund', 'exchange', 'voucher', 'please',
+                'within', 'days', 'purchase', 'packaging',
+                'goods sold', 'valid', 'original', 'accepted',
+                'qr code', 'e-invoice', 'sign up', 'analysis',
+                'no tax', 'printed', 'scan', 'request',
+                'jalan', 'kuala lumpur', 'selangor', 'taman',
+                'ws:', 'fax:', 'tel:'
             ]):
+                continue
+
+            # Skip lines that are just barcodes/numbers
+            stripped = line.strip().replace(' ', '').replace('-', '')
+            if stripped.isdigit() and len(stripped) > 8:
+                continue
+
+            # Skip very short lines
+            if len(line.strip()) < 4:
                 continue
 
             item = self._parse_item_line(line)
             if item:
+                # Filter out items with unrealistic prices (> RM5000 for single item)
+                if item['total_price'] > 5000:
+                    continue
+                # Filter out items whose name looks like a barcode
+                name_stripped = item['name'].replace(' ', '').replace('.', '').replace('-', '')
+                if name_stripped.isdigit() and len(name_stripped) > 6:
+                    continue
                 items.append(item)
 
         return items
@@ -190,6 +215,27 @@ class InvoiceParser:
                 "category": self._categorize_item(name)
             }
 
+        # Pattern for retail receipts: "ITEM NAME weight/qty\nprice qty total"
+        # e.g. "CONAPROLE FULL CREAM UHT MILK 1L"
+        # next line: "7730105021361 4.90@1 4.90"
+        # Match: "barcode price@qty total" or "barcode price*qty total"
+        match = re.match(
+            r'\d{8,}\s+(\d+\.?\d{2})\s*[@x*]\s*(\d+)\s+(\d+\.?\d{2})',
+            line, re.IGNORECASE
+        )
+        if match:
+            unit_price = float(match.group(1))
+            qty = float(match.group(2))
+            total = float(match.group(3))
+            return {
+                "name": "(from barcode line)",
+                "quantity": qty,
+                "unit": "unit",
+                "unit_price": unit_price,
+                "total_price": total,
+                "category": "lain"
+            }
+
         # Pattern: "ItemName    RM XX.XX"
         match = re.match(
             r'(.+?)\s+(?:RM\s*)?(\d+\.?\d{2})\s*$',
@@ -198,8 +244,10 @@ class InvoiceParser:
         if match:
             name = match.group(1).strip()
             total = float(match.group(2))
-            # Only if name looks valid (not just numbers)
-            if len(name) > 2 and not name.replace('.', '').replace(',', '').isdigit():
+            # Only if name looks valid (not just numbers, not too short)
+            if (len(name) > 2 and
+                not name.replace('.', '').replace(',', '').replace(' ', '').isdigit() and
+                total < 5000):  # Sanity check on price
                 return {
                     "name": name,
                     "quantity": 1,
